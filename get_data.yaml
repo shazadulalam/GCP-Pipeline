@@ -1,0 +1,74 @@
+# PIPELINE DEFINITION
+# Name: create-dataset-from-bq
+# Outputs:
+#    output_dir: system.Dataset
+components:
+  comp-create-dataset-from-bq:
+    executorLabel: exec-create-dataset-from-bq
+    outputDefinitions:
+      artifacts:
+        output_dir:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+deploymentSpec:
+  executors:
+    exec-create-dataset-from-bq:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - create_dataset_from_bq
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.7.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
+          $0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef create_dataset_from_bq(\n    output_dir: Output[Dataset],\n):\n\
+          \    import pandas as pd\n    from src.preprocess import create_dataset_from_bq\
+          \ as preprocess_create_dataset_from_bq\n\n    try:\n        df = preprocess_create_dataset_from_bq()\n\
+          \        df.to_csv(output_dir.path, index=False)\n    except Exception as\
+          \ e:\n        print(f\"Error in create_dataset_from_bq: {e}\")\n       \
+          \ raise\n\n"
+        image: eu.gcr.io/gcp-learn-430710/thelook_training_demo:latest
+pipelineInfo:
+  name: create-dataset-from-bq
+root:
+  dag:
+    outputs:
+      artifacts:
+        output_dir:
+          artifactSelectors:
+          - outputArtifactKey: output_dir
+            producerSubtask: create-dataset-from-bq
+    tasks:
+      create-dataset-from-bq:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-create-dataset-from-bq
+        taskInfo:
+          name: create-dataset-from-bq
+  outputDefinitions:
+    artifacts:
+      output_dir:
+        artifactType:
+          schemaTitle: system.Dataset
+          schemaVersion: 0.0.1
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.7.0

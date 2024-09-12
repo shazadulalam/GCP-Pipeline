@@ -1,0 +1,145 @@
+# PIPELINE DEFINITION
+# Name: compute-metrics
+# Inputs:
+#    model: system.Model
+# Outputs:
+#    compute-metrics-test_metric: system.Metrics
+#    compute-metrics-train_metric: system.Metrics
+#    compute-metrics-val_metric: system.Metrics
+#    test_metric: system.Metrics
+#    train_metric: system.Metrics
+#    val_metric: system.Metrics
+components:
+  comp-compute-metrics:
+    executorLabel: exec-compute-metrics
+    inputDefinitions:
+      artifacts:
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+    outputDefinitions:
+      artifacts:
+        test_metric:
+          artifactType:
+            schemaTitle: system.Metrics
+            schemaVersion: 0.0.1
+        train_metric:
+          artifactType:
+            schemaTitle: system.Metrics
+            schemaVersion: 0.0.1
+        val_metric:
+          artifactType:
+            schemaTitle: system.Metrics
+            schemaVersion: 0.0.1
+deploymentSpec:
+  executors:
+    exec-compute-metrics:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - compute_metrics
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.7.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
+          $0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef compute_metrics(\n    model: Input[Model],\n    train_metric:\
+          \ Output[Metrics],\n    val_metric: Output[Metrics],\n    test_metric: Output[Metrics]\n\
+          ):\n    import json\n\n    with open(model.path, 'r') as file:\n       \
+          \ model_metrics = json.load(file)\n\n    train_metric.log_metric('train_auc',\
+          \ model_metrics['train'])\n    val_metric.log_metric('val_auc', model_metrics['eval'])\n\
+          \    test_metric.log_metric('test_auc', model_metrics['test'])\n\n"
+        image: python:3.9
+pipelineInfo:
+  name: compute-metrics
+root:
+  dag:
+    outputs:
+      artifacts:
+        compute-metrics-test_metric:
+          artifactSelectors:
+          - outputArtifactKey: test_metric
+            producerSubtask: compute-metrics
+        compute-metrics-train_metric:
+          artifactSelectors:
+          - outputArtifactKey: train_metric
+            producerSubtask: compute-metrics
+        compute-metrics-val_metric:
+          artifactSelectors:
+          - outputArtifactKey: val_metric
+            producerSubtask: compute-metrics
+        test_metric:
+          artifactSelectors:
+          - outputArtifactKey: test_metric
+            producerSubtask: compute-metrics
+        train_metric:
+          artifactSelectors:
+          - outputArtifactKey: train_metric
+            producerSubtask: compute-metrics
+        val_metric:
+          artifactSelectors:
+          - outputArtifactKey: val_metric
+            producerSubtask: compute-metrics
+    tasks:
+      compute-metrics:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-compute-metrics
+        inputs:
+          artifacts:
+            model:
+              componentInputArtifact: model
+        taskInfo:
+          name: compute-metrics
+  inputDefinitions:
+    artifacts:
+      model:
+        artifactType:
+          schemaTitle: system.Model
+          schemaVersion: 0.0.1
+  outputDefinitions:
+    artifacts:
+      compute-metrics-test_metric:
+        artifactType:
+          schemaTitle: system.Metrics
+          schemaVersion: 0.0.1
+      compute-metrics-train_metric:
+        artifactType:
+          schemaTitle: system.Metrics
+          schemaVersion: 0.0.1
+      compute-metrics-val_metric:
+        artifactType:
+          schemaTitle: system.Metrics
+          schemaVersion: 0.0.1
+      test_metric:
+        artifactType:
+          schemaTitle: system.Metrics
+          schemaVersion: 0.0.1
+      train_metric:
+        artifactType:
+          schemaTitle: system.Metrics
+          schemaVersion: 0.0.1
+      val_metric:
+        artifactType:
+          schemaTitle: system.Metrics
+          schemaVersion: 0.0.1
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.7.0

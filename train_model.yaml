@@ -1,0 +1,116 @@
+# PIPELINE DEFINITION
+# Name: train-model
+# Inputs:
+#    dataset_test: system.Dataset
+#    dataset_train: system.Dataset
+#    dataset_val: system.Dataset
+# Outputs:
+#    model: system.Model
+components:
+  comp-train-model:
+    executorLabel: exec-train-model
+    inputDefinitions:
+      artifacts:
+        dataset_test:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+        dataset_train:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+        dataset_val:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+    outputDefinitions:
+      artifacts:
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+deploymentSpec:
+  executors:
+    exec-train-model:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - train_model
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.7.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
+          $0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef train_model(\n    dataset_train: Input[Dataset],\n    dataset_val:\
+          \ Input[Dataset],\n    dataset_test: Input[Dataset],\n    model: Output[Model]\n\
+          ):\n    import json\n    from src.train import train_and_evaluate\n\n  \
+          \  outputs = train_and_evaluate(\n        dataset_train.path,\n        dataset_val.path,\n\
+          \        dataset_test.path\n    )\n    cb_model = outputs['model']\n   \
+          \ scores = outputs['scores']\n\n    model.metadata[\"framework\"] = \"catboost\"\
+          \n    # Save the model as an artifact\n    with open(model.path, 'w') as\
+          \ f:\n        json.dump(scores, f)\n\n"
+        image: eu.gcr.io/gcp-learn-430710/thelook_training_demo:latest
+pipelineInfo:
+  name: train-model
+root:
+  dag:
+    outputs:
+      artifacts:
+        model:
+          artifactSelectors:
+          - outputArtifactKey: model
+            producerSubtask: train-model
+    tasks:
+      train-model:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-train-model
+        inputs:
+          artifacts:
+            dataset_test:
+              componentInputArtifact: dataset_test
+            dataset_train:
+              componentInputArtifact: dataset_train
+            dataset_val:
+              componentInputArtifact: dataset_val
+        taskInfo:
+          name: train-model
+  inputDefinitions:
+    artifacts:
+      dataset_test:
+        artifactType:
+          schemaTitle: system.Dataset
+          schemaVersion: 0.0.1
+      dataset_train:
+        artifactType:
+          schemaTitle: system.Dataset
+          schemaVersion: 0.0.1
+      dataset_val:
+        artifactType:
+          schemaTitle: system.Dataset
+          schemaVersion: 0.0.1
+  outputDefinitions:
+    artifacts:
+      model:
+        artifactType:
+          schemaTitle: system.Model
+          schemaVersion: 0.0.1
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.7.0
