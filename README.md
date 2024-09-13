@@ -117,7 +117,7 @@ export IMAGE_TAG=latest #IMAGE TAG
 export IMAGE_URI=LOCATION_OF_YOUR_ARTIFACT_REGISTRY;example{eu.gcr.io/${PROJECT_ID}/${IMAGE_NAME}:${IMAGE_TAG}}
 ```
 
-### Build and push the Docker Image: Once the environment variables are set, push the Docker image to Google Artifact Registry.
+Build and push the Docker Image: Once the environment variables are set, push the Docker image to Google Artifact Registry.
 
 ```bash
 gcloud builds submit --tag $IMAGE_URI . 
