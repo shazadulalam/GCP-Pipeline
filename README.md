@@ -62,7 +62,7 @@ WHERE transactions.status <> 'Cancelled';
 - `src/`: Source code for preprocessing, feature extraction, model training, and evaluation.
 - `output/`: Trained machine learning models saved for further use.
 - `notebooks/`: Jupyter notebooks for exploratory data analysis and modeling experiments.
-- `README.md`: This file, explaining the objectives, approach, and organization of the project.
+- `README.md`: This file, explains the objectives, approach, and organization of the project.
 
 ---
 
@@ -108,7 +108,7 @@ python src/evaluate.py
 
 ### Docker:
 
-Prepare your [Dockerfile](https://github.com/yourusername/yourrepository/blob/main/Dockerfile) file accordingly. To set the Docker environment, execute the following command lines:
+Prepare your [Dockerfile](https://github.com/shazadulalam/GCP-Pipeline/blob/main/Dockerfile) file accordingly. To set the Docker environment, execute the following command lines:
 
 ```bash
 export PROJECT_ID=YOUR_GCP_PROJECT_ID
