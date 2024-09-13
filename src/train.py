@@ -3,14 +3,15 @@ import pandas as pd
 import sklearn as sk
 import numpy as np
 import argparse
-
+import os
 from sklearn.metrics import roc_auc_score
         
         
 def train_and_evaluate(
         train_path: str,
         validation_path: str,
-        test_path: str
+        test_path: str,
+        output_dir: str
     ):
     df_train = pd.read_csv(train_path)
     df_val = pd.read_csv(validation_path)
@@ -94,7 +95,23 @@ def train_and_evaluate(
     print(f"ROC-AUC for validation set : {roc_eval:.2f}")
     print(f"ROC-AUC for test.      set : {roc_test:.2f}")
     
+    # Save the trained model
+    save_model(model, output_dir)
+    
     return {"model": model, "scores": {"train": roc_train, "eval": roc_eval, "test": roc_test}}
+
+def save_model(model, output_dir):
+    # Ensure output directory exists
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Specify the model file name and path
+    model_path = os.path.join(output_dir, 'customerPredict_model.cbm')
+    
+    # Save the model
+    model.save_model(model_path)
+    
+    print(f"Model saved at: {model_path}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -106,4 +123,5 @@ if __name__ == '__main__':
     _ = train_and_evaluate(
         args.train_path,
         args.validation_path,
-        args.test_path)
+        args.test_path,
+        args.output_dir)

@@ -108,10 +108,10 @@ def split_data(df_agg, output_dir):
 if __name__ == '__main__':
     import argparse
 
+    # Set up argument parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", type=str, required=True, help="Directory to save the CSV files")
     args = parser.parse_args()
-    output_dir = "/home/forhad/Study/Self_Work/GCP/GCP-Pipeline/GCP-Pipeline/dataset"
 
     # Create dataset from BigQuery
     df_agg = create_dataset()
