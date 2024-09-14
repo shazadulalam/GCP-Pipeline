@@ -16,7 +16,7 @@ The following brands are the focus of the special offer, and the prediction will
 - Hurley
 
 ### Objective
-The objective is to predict which brand a customer will purchase in their next transaction. To achieve this, a score will be assigned to each customer that reflects the probability of purchasing from the brands listed above.
+The objective is to predict which brand a customer will purchase in their next transaction. To achieve this, a score will be assigned to each customer that reflects the probability of buying from the brands listed above.
 
 ### Querying the BigQuery
 
@@ -41,7 +41,7 @@ ON transactions.user_id = users.id
 LEFT JOIN `bigquery-public-data.thelook_ecommerce.products` AS products
 ON transactions.product_id = products.id
 WHERE transactions.status <> 'Cancelled';
-
+```
 
 ### Approach
 
@@ -62,7 +62,7 @@ WHERE transactions.status <> 'Cancelled';
 - `src/`: Source code for preprocessing, feature extraction, model training, and evaluation.
 - `output/`: Trained machine learning models saved for further use.
 - `notebooks/`: Jupyter notebooks for exploratory data analysis and modeling experiments.
-- `README.md`: This file, explaining the objectives, approach, and organization of the project.
+- `README.md`: This file, explains the objectives, approach, and organization of the project.
 
 ---
 
@@ -79,7 +79,7 @@ You can install the required packages using:
 
 ```bash
 pip install -r requirements.txt
-
+```
 
 ### Usage
 
@@ -87,37 +87,38 @@ pip install -r requirements.txt
 
 ```bash
 git clone https://github.com/shazadulalam/GCP-Pipeline.git
-
+```
 
 ### Preprocess the data:
 
 ```bash
 python src/preprocess.py
-
+```
 ### Train the model:
 
 ```bash
 python src/train.py
-
+```
 
 ### Evaluate the model:
 
 ```bash
 python src/evaluate.py
-
+```
 
 ### Docker:
 
-Prepare your [Dockerfile](https://github.com/yourusername/yourrepository/blob/main/Dockerfile) file accordingly. To set the Docker environment, execute the following command lines:
+Prepare your [Dockerfile](https://github.com/shazadulalam/GCP-Pipeline/blob/main/Dockerfile) file accordingly. To set the Docker environment, execute the following command lines:
 
 ```bash
 export PROJECT_ID=YOUR_GCP_PROJECT_ID
 export IMAGE_NAME=NAME_OF_YOUR_IMAGE
 export IMAGE_TAG=latest #IMAGE TAG
 export IMAGE_URI=LOCATION_OF_YOUR_ARTIFACT_REGISTRY;example{eu.gcr.io/${PROJECT_ID}/${IMAGE_NAME}:${IMAGE_TAG}}
+```
 
-
-### Build and push the Docker Image: Once the environment variables are set, push the Docker image to Google Artifact Registry.
+Build and push the Docker Image: Once the environment variables are set, push the Docker image to Google Artifact Registry.
 
 ```bash
 gcloud builds submit --tag $IMAGE_URI . 
+```
