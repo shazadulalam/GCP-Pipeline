@@ -122,3 +122,5 @@ Build and push the Docker Image: Once the environment variables are set, push th
 ```bash
 gcloud builds submit --tag $IMAGE_URI . 
 ```
+
+Push your pipeline to Vertex AI and Artifact Registry, and use the script from `pipeline/pipeline.py` and execute the `python` file
